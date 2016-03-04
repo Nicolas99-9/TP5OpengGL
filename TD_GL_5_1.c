@@ -332,6 +332,7 @@ void idle_function()
     
     if(sphere_y<5){
 		sphere_vy = -sphere_vy;  
+		sphere_y = sphere_iy;
 	}
     
 
