@@ -77,7 +77,7 @@ float sphere_a[3][N_S];
 float sphere_ia[3][N_S];
 
 // Pas de temps
-double dt = 0.0002;
+double dt = 0.02;
 
 /* code ASCII pour la touche escape*/
 #define ESCAPE 27
@@ -169,13 +169,27 @@ void DrawGLScene()
 
 int i,j ; // variables d'incrémentation
 
-//..
-
+   for(i=0;i<N_S;i++){
+	    glPushMatrix();
+        glTranslatef(sphere_p[0][i],sphere_p[1][i],sphere_p[2][i]);
+        glutSolidSphere(R,50,50);
+        glPopMatrix(); 
+   }
+  
 ////////////////////////////////////////////////////////////
 // Affichage des calbes
+    glLineWidth(5.0f);
+      for(i=0;i<N_S;i++){
+		for(j=i+1;j<N_S;j++){
+			glBegin(GL_LINES);
+			glVertex3f(sphere_p[0][i],sphere_p[1][i],sphere_p[2][i]);
+            glVertex3f(sphere_p[0][j],sphere_p[1][j],sphere_p[2][j]);
+			glEnd();
+		   
+		}
+		glLineWidth(1.0f);
+   }
 
-
-//..
 
 
 ////////////////////////////////////////////////////////////
@@ -433,7 +447,12 @@ int i,j; // variable d'incrémentation
 // Tests avec le sol
 
 //..
-
+  for(i=0;i<N_S;i++){
+    if(sphere_p[1][i]<R){
+		sphere_p[1][i] = sphere_ip[1][i] ;
+		sphere_v[1][i] = -sphere_v[1][i];  
+	}
+}
 // Tests entre sphères
   for(i = 0; i < N_S ; i++)
      
@@ -441,47 +460,58 @@ int i,j; // variable d'incrémentation
    
 	  for(j = i+1; j < N_S ; j++)	   
 	  {       
-// Test de distance entre spheres
+		  
+		  float distance = sqrt(pow(sphere_p[0][i]-sphere_p[0][j],2) + pow(sphere_p[1][i]-sphere_p[1][j],2) + pow(sphere_p[2][i]-sphere_p[2][j],2)); // distance entre deux spheres
+		  if(distance < 2.0* R){
+			  //axes de projections (vecteur de projection entre les spheres) (axe entre les deux boulles , forces opposes à cette axe)
+			  float projX = (sphere_p[0][i]-sphere_p[0][j])/distance;
+			  float projY = (sphere_p[1][i]-sphere_p[1][j])/distance;
+			  float projZ = (sphere_p[2][i]-sphere_p[2][j])/distance;
+			  //pour calculer 
+			  // Projection de la vitesse courante sur l'axe de projection : produit sclaire
+			  float projVi = (projX*sphere_v[0][i])+(projY*sphere_v[1][i])+(projZ*sphere_v[2][i]);
+			  float projVj = (projX*sphere_v[0][j])+(projY*sphere_v[1][j])+(projZ*sphere_v[2][j]);
+		  
 
-//..
+			  // Paramètre de surface
 
-//Axe de projection
+			  float K_cont = 0.5;
 
-//..
-
-// Projection de la vitesse courante sur l'axe de projection : produit sclaire
-
-//..
-
-// Paramètre de surface
-
-	float K_cont = 0.5;
-
-//Calcul de la vitesse 
-
-//..
+			  //Calcul de la vitesse 
+			  sphere_v[0][i] = -K_cont * projX * projVi;
+			  sphere_v[1][i] = -K_cont * projY * projVi;
+			  sphere_v[2][i] = -K_cont * projZ * projVi;
+			  
+			  sphere_v[0][j] = -K_cont * projX * projVj;
+			  sphere_v[1][j] = -K_cont * projY * projVj;
+			  sphere_v[2][j] = -K_cont * projZ * projVj;
+			  
+			  sphere_p[0][i] = sphere_ip[0][i];
+			  sphere_p[1][i] = sphere_ip[1][i];
+			  sphere_p[2][i] = sphere_ip[2][i];
+			  
+			  sphere_p[0][j] = sphere_ip[0][j];
+			  sphere_p[1][j] = sphere_ip[1][j];
+			  sphere_p[2][j] = sphere_ip[2][j];
+          
+	      }
   
 
 	  } 
   }
 }
 
+
 void ACC_Calculation()
 {
 int i,j; // variable d'incrémentation
 
 // Initialisation du vecteur d'acceleration
-
-//..
-
-// Gravité
-
-//..
-
-//Viscosité
-
-//..
-
+   for(i=0;i<N_S;i++){
+    sphere_a[0][i] = -sphere_ia[0][i] * B;
+    sphere_a[1][i] = -G -sphere_ia[1][i] * B;
+    sphere_a[2][i] = -sphere_ia[2][i] * B;
+  }
 //Tension : calbes
 
 
@@ -491,32 +521,55 @@ int i,j; // variable d'incrémentation
         for(j = i+1; j < N_S; j++) 
 
 	   {
+		  float distance = sqrt(pow(sphere_p[0][i]-sphere_p[0][j],2) + pow(sphere_p[1][i]-sphere_p[1][j],2) + pow(sphere_p[2][i]-sphere_p[2][j],2)); // distance entre deux spheres
+		  if(distance > L_C){
+			  //axes de projections (vecteur de projection entre les spheres) (axe entre les deux boulles , forces opposes à cette axe)
+			  float projX = (sphere_p[0][i]-sphere_p[0][j])/distance;
+			  float projY = (sphere_p[1][i]-sphere_p[1][j])/distance;
+			  float projZ = (sphere_p[2][i]-sphere_p[2][j])/distance;
+			  //pour calculer 
+			  // Projection de la vitesse courante sur l'axe de projection : produit sclaire
+			  float projVi = (projX*sphere_v[0][i])+(projY*sphere_v[1][i])+(projZ*sphere_v[2][i]);
+			  float projVj = (projX*sphere_v[0][j])+(projY*sphere_v[1][j])+(projZ*sphere_v[2][j]);
 
-// Test de franchissement de la distance de reference
+              // Paramètre du cable
+	          float K_cont = 1.0;
 
+              //Calcul de l'acceleration
+              
+                /*sphere_v[0][i] = -K_cont*(distance-L_C)*projX;
+                sphere_v[1][i] = -K_cont*(distance-L_C)*projY;
+                sphere_v[2][i] = -K_cont*(distance-L_C)*projZ;
+                
+                sphere_v[0][j] = -K_cont*(distance-L_C)*projX;
+                sphere_v[1][j] = -K_cont*(distance-L_C)*projY;
+                sphere_v[2][j] = -K_cont*(distance-L_C)*projZ;
+                */
+                    
+					/*sphere_a[0][i] = sphere_a[0][i] -K_cont*(distance-L_C)*projX;
+					sphere_a[1][i] = sphere_a[1][i] -K_cont*(distance-L_C)*projY;
+					sphere_a[2][i] = sphere_a[2][i] -K_cont*(distance-L_C)*projZ;
+					*/
+					                    
 
+				
+                sphere_a[0][i] += -K_cont * projX * projVj;
+                sphere_a[1][i] += -K_cont * projY * projVj;
+                sphere_a[2][i] += -K_cont * projZ * projVj;
+                
+                sphere_a[0][j] += K_cont * projX * projVi;
+                sphere_a[1][j] += K_cont * projY * projVi;
+                sphere_a[2][j] += K_cont * projZ * projVi;
+                
+                
 
-//Axe de projection
-
-//..
-
-
-// Projection de la vitesse courante sur l'axe de projection : produit sclaire
-
-//..
-
-// Paramètre du cable
-	float K_cont = 1.0;
-
-//Calcul de l'acceleration
-
-//..
-
+               
 		}    		  
-  }
+      }
   
-}
+   }
 
+}
 
 
 
@@ -525,28 +578,53 @@ void idle_function()
 {
 int i ; // variable d'incrémentation
 
-	////////////////////////////////////
-	// postion calculation
-
-//..
-
-	////////////////////////////////////
-	// Détection de collision
-
-//..
-
-	////////////////////////////////////
-	// Acceleration calculation : forces addition
-
-//..
+    //sphere => sphere_p
+    // sphere ix
+    for(i=0;i<N_S;i++){
+        sphere_p[0][i] = sphere_ip[0][i]  +sphere_iv[0][i] * dt;
+        sphere_p[1][i] = sphere_ip[1][i]  +sphere_iv[1][i] * dt;
+        sphere_p[2][i] = sphere_ip[2][i]  +sphere_iv[2][i] * dt;
+          
+        sphere_v[0][i] = sphere_iv[0][i] + sphere_ia[0][i] * dt;
+        sphere_v[1][i] = sphere_iv[1][i] +  sphere_ia[1][i] * dt;
+        sphere_v[2][i] = sphere_iv[2][i] +  sphere_ia[2][i] * dt;
+         
 
 	////////////////////////////////////
-	// system update
+	// Collision test
+    
+    
+   
+	ACC_Calculation();
 
-//..
+	CDFunction();
+	
+    
 
+	////////////////////////////////////
+	// Acceleration calculation
+
+     
+    
+
+
+	////////////////////////////////////
+	// System update
+	 
+	  sphere_ia[0][i] = sphere_a[0][i];
+	  sphere_ia[1][i] = sphere_a[1][i];
+	  sphere_ia[2][i] = sphere_a[2][i];
+	 
+	 
+	 sphere_ip[0][i] = sphere_p[0][i];
+	 sphere_ip[1][i] = sphere_p[1][i];
+	 sphere_ip[2][i] = sphere_p[2][i];
+	 
+	 sphere_iv[0][i] = sphere_v[0][i];
+     sphere_iv[1][i] = sphere_v[1][i];
+     sphere_iv[2][i] = sphere_v[2][i];
+   }
 }
-
 int main(int argc, char **argv) 
 {
   /* Initialize GLUT state - glut will take any command line arguments that pertain to it or 
