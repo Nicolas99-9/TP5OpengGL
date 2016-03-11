@@ -99,6 +99,10 @@ void Special_key(int key, int x, int y);
 void CDFunction();
 void ACC_Calculation();
 
+
+//g++ TD_GL_5_3.c -o TD3 -lGL -lglut -lGLU -lm && ./TD3
+
+
 /* Fonction d'initialisation */
 void InitGL(int Width, int Height)	        
 {
@@ -144,7 +148,7 @@ void ReSizeGLScene(int Width, int Height)
 // Projection perceptive
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();				
-  gluPerspective(45.0f,(GLfloat)Width/(GLfloat)Height,0.1f,100.0f);	
+  gluPerspective(45.0f,(GLfloat)Width/(GLfloat)Height,0.1f,150.0f);	
 
   glMatrixMode(GL_MODELVIEW);
 
@@ -534,24 +538,6 @@ int i,j; // variable d'incrémentation
 
               // Paramètre du cable
 	          float K_cont = 1.0;
-
-              //Calcul de l'acceleration
-              
-                /*sphere_v[0][i] = -K_cont*(distance-L_C)*projX;
-                sphere_v[1][i] = -K_cont*(distance-L_C)*projY;
-                sphere_v[2][i] = -K_cont*(distance-L_C)*projZ;
-                
-                sphere_v[0][j] = -K_cont*(distance-L_C)*projX;
-                sphere_v[1][j] = -K_cont*(distance-L_C)*projY;
-                sphere_v[2][j] = -K_cont*(distance-L_C)*projZ;
-                */
-                    
-					/*sphere_a[0][i] = sphere_a[0][i] -K_cont*(distance-L_C)*projX;
-					sphere_a[1][i] = sphere_a[1][i] -K_cont*(distance-L_C)*projY;
-					sphere_a[2][i] = sphere_a[2][i] -K_cont*(distance-L_C)*projZ;
-					*/
-					                    
-
 				
                 sphere_a[0][i] += -K_cont * projX * projVj;
                 sphere_a[1][i] += -K_cont * projY * projVj;
@@ -561,9 +547,6 @@ int i,j; // variable d'incrémentation
                 sphere_a[1][j] += K_cont * projY * projVi;
                 sphere_a[2][j] += K_cont * projZ * projVi;
                 
-                
-
-               
 		}    		  
       }
   
